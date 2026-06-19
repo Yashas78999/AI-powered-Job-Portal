@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: hireiq-db
+    environment:
+      POSTGRES_DB: hireiq
+      POSTGRES_USER: hireiq_user
+      POSTGRES_PASSWORD: hireiq_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: hireiq-redis
+    ports:
+      - "6379:6379"
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: hireiq-backend
+    env_file: ./backend/.env
+    environment:
+      DATABASE_URL: jdbc:postgresql://postgres:5432/hireiq
+      DATABASE_USERNAME: hireiq_user
+      DATABASE_PASSWORD: hireiq_pass
+      REDIS_URL: redis://redis:6379
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+      - redis
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: hireiq-frontend
+    environment:
+      VITE_API_URL: http://localhost:8080
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
