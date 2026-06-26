@@ -55,6 +55,9 @@ public class SecurityConfig {
                 .requestMatchers("/api/seeker/**").hasRole("SEEKER")
                 .anyRequest().authenticated()
             )
+            .exceptionHandling(exceptions -> exceptions
+                .authenticationEntryPoint(new org.springframework.security.web.authentication.HttpStatusEntryPoint(org.springframework.http.HttpStatus.UNAUTHORIZED))
+            )
             .authenticationProvider(authenticationProvider())
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
